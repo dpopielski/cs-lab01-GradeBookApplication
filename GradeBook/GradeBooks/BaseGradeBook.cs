@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq;
-
 using GradeBook.Enums;
 using System.Collections.Generic;
 using System.IO;
@@ -9,15 +8,19 @@ using Newtonsoft.Json.Linq;
 
 namespace GradeBook.GradeBooks
 {
-    public class BaseGradeBook
+    public abstract class BaseGradeBook
     {
+        public GradeBookType Type { get; set; }
         public string Name { get; set; }
         public List<Student> Students { get; set; }
 
-        public BaseGradeBook(string name)
+        public bool IsWeighted { get; set; }
+
+        public BaseGradeBook(string name, bool weighted)
         {
             Name = name;
             Students = new List<Student>();
+            IsWeighted = weighted;
         }
 
         public void AddStudent(Student student)
@@ -106,18 +109,19 @@ namespace GradeBook.GradeBooks
 
         public virtual double GetGPA(char letterGrade, StudentType studentType)
         {
+            int a = IsWeighted ? (studentType == StudentType.Honors ? 1 : studentType == StudentType.DualEnrolled ? 1 : 0) : 0;
             switch (letterGrade)
             {
                 case 'A':
-                    return 4;
+                    return a + 4;
                 case 'B':
-                    return 3;
+                    return a + 3;
                 case 'C':
-                    return 2;
+                    return a + 2;
                 case 'D':
-                    return 1;
+                    return a + 1;
                 case 'F':
-                    return 0;
+                    return a;
             }
             return 0;
         }
@@ -263,7 +267,7 @@ namespace GradeBook.GradeBooks
                              from type in assembly.GetTypes()
                              where type.FullName == "GradeBook.GradeBooks.StandardGradeBook"
                              select type).FirstOrDefault();
-            
+
             return JsonConvert.DeserializeObject(json, gradebook);
         }
     }
